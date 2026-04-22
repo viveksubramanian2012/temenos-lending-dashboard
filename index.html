@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temenos Transact R25 — Lending &amp; Deposits Capability | Luxembourg Banking</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f1f5f9; --card: #ffffff; --border: #e2e8f0;
+  --header-bg: #0f172a; --header-text: #f8fafc;
+  --primary: #2563eb; --success: #059669; --warning: #d97706;
+  --danger: #dc2626; --neutral: #64748b;
+  --text-h: #0f172a; --text-body: #1e293b; --text-muted: #64748b;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text-body); font-size: 14px; line-height: 1.5; }
+.header { background: var(--header-bg); color: var(--header-text); padding: 24px 32px; }
+.header h1 { font-size: 21px; font-weight: 700; margin-bottom: 4px; }
+.header p { color: #94a3b8; font-size: 13px; }
+.header-meta { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.header-badge { background: rgba(255,255,255,.1); border-radius: 6px; padding: 5px 12px; font-size: 12px; color: #e2e8f0; }
+.header-badge i { margin-right: 6px; color: #60a5fa; }
+.tab-bar { background: #1e293b; padding: 0 32px; display: flex; gap: 2px; overflow-x: auto; }
+.tab-btn { background: transparent; border: none; color: #94a3b8; padding: 14px 18px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all .2s; }
+.tab-btn:hover { color: #e2e8f0; }
+.tab-btn.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+.tab-btn i { margin-right: 6px; }
+.content { padding: 32px; max-width: 1400px; margin: 0 auto; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.kpi-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); }
+.kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.kpi-value { font-size: 32px; font-weight: 700; color: var(--text-h); line-height: 1; margin-bottom: 6px; }
+.kpi-delta { font-size: 12px; font-weight: 500; }
+.kpi-delta.positive { color: var(--success); }
+.kpi-delta.warning { color: var(--warning); }
+.kpi-delta.neutral { color: var(--neutral); }
+.kpi-delta.danger { color: var(--danger); }
+.chart-grid { display: grid; gap: 24px; margin-bottom: 24px; }
+.chart-grid.cols-2 { grid-template-columns: 3fr 2fr; }
+.chart-grid.cols-equal { grid-template-columns: 1fr 1fr; }
+.chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); }
+.chart-title { font-size: 15px; font-weight: 700; color: var(--text-h); margin-bottom: 4px; }
+.chart-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+.chart-wrap { position: relative; }
+.chart-wrap.h280 { height: 280px; }
+.chart-wrap.h340 { height: 340px; }
+.chart-wrap.h360 { height: 360px; }
+.chart-wrap.h200 { height: 200px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { background: var(--bg); padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid var(--border); }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-body); vertical-align: top; line-height: 1.5; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #f8fafc; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-yellow { background: #fef3c7; color: #92400e; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-purple { background: #ede9fe; color: #5b21b6; }
+.badge-gray { background: #f1f5f9; color: #475569; }
+.badge-teal { background: #ccfbf1; color: #134e4a; }
+.section-hdr { font-size: 15px; font-weight: 700; color: var(--text-h); margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+.gap-box { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+.gap-box-title { font-size: 14px; font-weight: 700; color: #92400e; margin-bottom: 12px; }
+.gap-box-title i { margin-right: 8px; }
+.gap-item { display: flex; align-items: flex-start; gap: 16px; padding: 10px 0; border-bottom: 1px solid #fde68a; }
+.gap-item:last-child { border-bottom: none; }
+.gap-item-label { font-weight: 700; color: #78350f; font-size: 13px; min-width: 260px; }
+.gap-item-desc { font-size: 13px; color: #92400e; line-height: 1.55; }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.compare-table th { padding: 10px 16px; text-align: left; font-weight: 700; }
+.compare-table th.dim { background: var(--bg); color: var(--text-muted); font-size: 11px; text-transform: uppercase; width: 22%; }
+.compare-table th.t24 { background: #dbeafe; color: #1e40af; }
+.compare-table th.tbc { background: #d1fae5; color: #065f46; }
+.compare-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.compare-table td.dim { font-weight: 600; color: var(--text-muted); background: var(--bg); font-size: 12px; }
+.compare-table tr:last-child td { border-bottom: none; }
+@media (max-width: 900px) {
+  .chart-grid.cols-2, .chart-grid.cols-equal { grid-template-columns: 1fr; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .content { padding: 16px; }
+  .gap-item { flex-direction: column; gap: 4px; }
+  .gap-item-label { min-width: unset; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><i class="fa-solid fa-landmark" style="color:#60a5fa;margin-right:10px"></i>Temenos Transact R25 — Lending &amp; Deposits Capability</h1>
+  <p>Luxembourg Banking Context &nbsp;·&nbsp; AA Framework (AL / AD) &nbsp;·&nbsp; Lending &amp; Deposits TBC Cloud-Native Architecture</p>
+  <div class="header-meta">
+    <span class="header-badge"><i class="fa-solid fa-database"></i>Source: Temenos Transact R25</span>
+    <span class="header-badge"><i class="fa-solid fa-calendar"></i>April 2026</span>
+    <span class="header-badge"><i class="fa-solid fa-shield-halved"></i>CSSF · DORA · GDPR · AML · PSD2</span>
+    <span class="header-badge"><i class="fa-solid fa-cloud"></i>T24 Transact + TBC Microservices</span>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('overview',this)"><i class="fa-solid fa-th-large"></i>Overview</button>
+  <button class="tab-btn" onclick="showTab('lending',this)"><i class="fa-solid fa-hand-holding-dollar"></i>Retail Lending (AL)</button>
+  <button class="tab-btn" onclick="showTab('deposits',this)"><i class="fa-solid fa-piggy-bank"></i>Retail Deposits (AD)</button>
+  <button class="tab-btn" onclick="showTab('corporate',this)"><i class="fa-solid fa-building-columns"></i>Corporate &amp; Structured</button>
+  <button class="tab-btn" onclick="showTab('tbc',this)"><i class="fa-solid fa-cloud-arrow-up"></i>Cloud-Native (TBC)</button>
+  <button class="tab-btn" onclick="showTab('regulatory',this)"><i class="fa-solid fa-gavel"></i>Regulatory Fit</button>
+</div>
+
+<div class="content">
+
+<!-- ═══ OVERVIEW ═══ -->
+<div id="overview" class="tab-panel active">
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Lending Modules</div><div class="kpi-value">7</div><div class="kpi-delta neutral">AL · LD · SL · CL · PD · LNSECU · TBC</div></div>
+    <div class="kpi-card"><div class="kpi-label">Deposit Modules</div><div class="kpi-value">5</div><div class="kpi-delta neutral">AD · FD · Accounts TBC · Term TBC · MCY TBC</div></div>
+    <div class="kpi-card"><div class="kpi-label">RFR Currencies</div><div class="kpi-value">5</div><div class="kpi-delta neutral">SOFR · SONIA · ESTER · TONAR · SARON</div></div>
+    <div class="kpi-card"><div class="kpi-label">Regulatory Frameworks</div><div class="kpi-value">6</div><div class="kpi-delta positive">CSSF · DORA · GDPR · AML · PSD2 · CCD</div></div>
+    <div class="kpi-card"><div class="kpi-label">SWIFT Migration</div><div class="kpi-value" style="font-size:20px">Nov 2026</div><div class="kpi-delta warning">⚠ BDP/IBP → SFRD25 Required</div></div>
+  </div>
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">Capability Coverage by Module</div>
+      <div class="chart-subtitle">Core activities + property classes across all R25 modules — lending and deposits</div>
+      <div class="chart-wrap h360"><canvas id="ovw-coverage"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Module Distribution</div>
+      <div class="chart-subtitle">12 modules across lending, deposits, and cloud-native TBC</div>
+      <div class="chart-wrap h360"><canvas id="ovw-donut"></canvas></div>
+    </div>
+  </div>
+  <div class="section-hdr">Module Reference — Temenos Transact R25</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Module</th><th>Code</th><th>Category</th><th>Key Capability</th><th>Architecture</th><th>LU Relevance</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Retail Lending (AA)</strong></td><td><span class="badge badge-blue">AL</span></td><td>Lending Core</td><td>Personal loans, mortgages, LOC, HELOC, revolving credit, SME loans</td><td>T24 Monolith</td><td><span class="badge badge-green">High</span></td></tr>
+        <tr><td><strong>Commercial Lending</strong></td><td><span class="badge badge-gray">LD</span></td><td>Lending Core</td><td>Corporate loans, bilateral deals, money market, treasury lending</td><td>T24 Legacy</td><td><span class="badge badge-green">High</span></td></tr>
+        <tr><td><strong>Syndicated Lending</strong></td><td><span class="badge badge-blue">SL</span></td><td>Corporate/Structured</td><td>Multi-lender facilities, tranches, agent &amp; participant bank roles</td><td>T24 Monolith</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+        <tr><td><strong>Collections</strong></td><td><span class="badge badge-blue">CL</span></td><td>Collections/Risk</td><td>Customer-level debt collection, queue management, PTP tracking</td><td>T24 Monolith</td><td><span class="badge badge-green">High</span></td></tr>
+        <tr><td><strong>Past Due</strong></td><td><span class="badge badge-blue">PD</span></td><td>Collections/Risk</td><td>LD overdue processing, 6-stage aging (PRE/GRA/PDO/NAB/WOF/FWOF)</td><td>T24 Monolith</td><td><span class="badge badge-green">High</span></td></tr>
+        <tr><td><strong>Retail Securitisation</strong></td><td><span class="badge badge-purple">LNSECU</span></td><td>Structured Finance</td><td>MBS/ABS pool management, investor participation, off-balance-sheet</td><td>T24 Monolith</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+        <tr><td><strong>Lending TBC</strong></td><td><span class="badge badge-teal">TBC</span></td><td>Cloud-Native</td><td>Microservices retail lending, REST-only API, event-driven GL</td><td>Cloud-Native</td><td><span class="badge badge-blue">Strategic</span></td></tr>
+        <tr><td><strong>AA Deposits</strong></td><td><span class="badge badge-blue">AD</span></td><td>Deposits Core</td><td>Term deposits, call, bonds, savings plans, retirement plan, rollover</td><td>T24 Monolith</td><td><span class="badge badge-green">High</span></td></tr>
+        <tr><td><strong>Fiduciary Deposits</strong></td><td><span class="badge badge-gray">FD</span></td><td>Deposits Core</td><td>Fiduciary placements on behalf of clients with external placement banks</td><td>T24 Monolith</td><td><span class="badge badge-green">High</span></td></tr>
+        <tr><td><strong>Retail Accounts TBC</strong></td><td><span class="badge badge-teal">TBC</span></td><td>Cloud-Native</td><td>Current/savings accounts, dormancy, notice withdrawal, overdraft (secondary limits)</td><td>Cloud-Native</td><td><span class="badge badge-blue">Strategic</span></td></tr>
+        <tr><td><strong>Term Deposits TBC</strong></td><td><span class="badge badge-teal">TBC</span></td><td>Cloud-Native</td><td>Term deposits, rollover, break-cost fee, notice deposits, savings plan</td><td>Cloud-Native</td><td><span class="badge badge-blue">Strategic</span></td></tr>
+        <tr><td><strong>MCY Accounts TBC</strong></td><td><span class="badge badge-teal">TBC</span></td><td>Cloud-Native</td><td>Multi-currency accounts, sub-account routing by currency via GAI layer</td><td>Cloud-Native</td><td><span class="badge badge-green">High</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ RETAIL LENDING (AL) ═══ -->
+<div id="lending" class="tab-panel">
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Lifecycle Activities</div><div class="kpi-value">15</div><div class="kpi-delta neutral">Origination to closure</div></div>
+    <div class="kpi-card"><div class="kpi-label">Repayment Types</div><div class="kpi-value">5</div><div class="kpi-delta neutral">Annuity · Linear · Constant · Progressive · Actual</div></div>
+    <div class="kpi-card"><div class="kpi-label">Property Classes</div><div class="kpi-value">14+</div><div class="kpi-delta neutral">TERM.AMOUNT to REPORTING</div></div>
+    <div class="kpi-card"><div class="kpi-label">Model Products</div><div class="kpi-value">16</div><div class="kpi-delta positive">Mortgage · LOC · Personal · SME · Student · Vehicle</div></div>
+  </div>
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">Loan Lifecycle — Activities by Phase</div>
+      <div class="chart-subtitle">Key AA Lending activities across the full loan lifecycle (AL module, R25)</div>
+      <div class="chart-wrap h340"><canvas id="al-lifecycle"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Repayment Schedule Types</div>
+      <div class="chart-subtitle">Five repayment methods — configure per product in AA.PRODUCT.DESIGNER</div>
+      <div class="chart-wrap h340"><canvas id="al-repayment"></canvas></div>
+    </div>
+  </div>
+  <div class="section-hdr">Key Property Classes — AL Module</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Property Class</th><th>Function</th><th>Luxembourg Product Context</th></tr></thead>
+      <tbody>
+        <tr><td><strong>TERM.AMOUNT</strong></td><td>Committed amount, term, maturity, cooling/cancel periods</td><td>Mortgage commitment; EU Consumer Credit Directive cooling period</td></tr>
+        <tr><td><strong>INTEREST</strong></td><td>Fixed/floating/periodic/RFR; tiered rates; negative rate handling</td><td>ESTER-linked mortgages; fixed-rate personal loans; SOFR USD corporate</td></tr>
+        <tr><td><strong>PAYMENT.SCHEDULE</strong></td><td>Repayment type (ANNUITY/LINEAR/CONSTANT/PROGRESSIVE/ACTUAL), frequency, disbursement schedule</td><td>Monthly EMI mortgages; linear amortisation for corporate-style retail loans</td></tr>
+        <tr><td><strong>PAYMENT.RULES</strong></td><td>Inbound payment allocation order across bills and balance types</td><td>Principal vs. interest priority — bank product policy choice</td></tr>
+        <tr><td><strong>PAYOFF</strong></td><td>Pre-closure settlement quote; shortfall write-off tolerance</td><td>Early mortgage redemption; SECCI disclosure (EU Consumer Credit Dir.)</td></tr>
+        <tr><td><strong>OVERDUE</strong></td><td>Aging statuses (PRE/GRA/OD1/OD2/DEL), penalty interest, chaser advices</td><td>NPL staging; CSSF credit risk category mapping; chaser letters</td></tr>
+        <tr><td><strong>CHARGE.OFF</strong></td><td>Dual-book: Bank / Customer / CO balances maintained in parallel</td><td>IFRS 9 impairment staging; NPL management without customer notification</td></tr>
+        <tr><td><strong>SETTLEMENT</strong></td><td>Pay-in/pay-out; SEPA direct debit; BENEFICIARY module linkage</td><td>SEPA SDD Core for mortgage repayments; disbursement to customer account</td></tr>
+        <tr><td><strong>LIMIT</strong></td><td>Credit limit linkage; revolving reinstatement</td><td>Line of credit for SME clients; overdraft facility management</td></tr>
+        <tr><td><strong>CHARGE</strong></td><td>Activity-based, periodic, insurance rebate charges</td><td>Arrangement fees; early redemption charges; insurance premium amortisation</td></tr>
+        <tr><td><strong>REPORTING</strong></td><td>IFRS cash flow; PM module link for ALM</td><td>Interest rate risk reporting; liquidity gap; BCBS 239 data lineage</td></tr>
+        <tr><td><strong>ELIGIBILITY</strong></td><td>Rules-engine eligibility checks (EB.RULES framework)</td><td>Credit scoring integration; product eligibility pre-qualification</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-hdr">Risk-Free Rate (RFR) Support — AL Module</div>
+  <div class="chart-card">
+    <div class="chart-wrap h200"><canvas id="al-rfr"></canvas></div>
+    <div style="margin-top:16px;font-size:13px;color:var(--text-muted)">
+      All five RFR currencies supported via lookback convention (Narrow or Observation Shift). Three calculation methods available: Compound Average · Simple Average · Amount-based Compounding. LIBOR-to-RFR migration process supported in R25.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RETAIL DEPOSITS (AD) ═══ -->
+<div id="deposits" class="tab-panel">
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Lifecycle Activities</div><div class="kpi-value">13</div><div class="kpi-delta neutral">New arrangement to close</div></div>
+    <div class="kpi-card"><div class="kpi-label">Model Products</div><div class="kpi-value">16</div><div class="kpi-delta positive">Term · Call · Bonds · Savings · Retirement</div></div>
+    <div class="kpi-card"><div class="kpi-label">SWIFT Messages</div><div class="kpi-value">4</div><div class="kpi-delta neutral">MT320 · MT330 · MT350 · MT935</div></div>
+    <div class="kpi-card"><div class="kpi-label">Negative Rate Support</div><div class="kpi-value">Yes</div><div class="kpi-delta positive">Floor · Permit · Block Margin</div></div>
+  </div>
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">Model Product Portfolio — AD Module</div>
+      <div class="chart-subtitle">Temenos R25 model bank deposit products — variants by category</div>
+      <div class="chart-wrap h340"><canvas id="ad-products"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">SWIFT Message Coverage</div>
+      <div class="chart-subtitle">SWIFT messages generated by AD module deposit activities</div>
+      <div class="chart-wrap h340"><canvas id="ad-swift"></canvas></div>
+    </div>
+  </div>
+  <div class="section-hdr">Core Deposit Activities — AD Module</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Activity</th><th>Trigger / Event</th><th>SWIFT</th><th>Phase</th></tr></thead>
+      <tbody>
+        <tr><td>DEPOSITS-NEW-ARRANGEMENT</td><td>Open new deposit arrangement</td><td>MT320 (term) / MT330 (call)</td><td><span class="badge badge-blue">Origination</span></td></tr>
+        <tr><td>DEPOSITS-TAKEOVER-ARRANGEMENT</td><td>Legacy system migration</td><td>—</td><td><span class="badge badge-gray">Migration</span></td></tr>
+        <tr><td>DEPOSITS-CREDIT-ARRANGEMENT</td><td>Fund or top-up deposit</td><td>—</td><td><span class="badge badge-blue">Funding</span></td></tr>
+        <tr><td>DEPOSITS-DEBIT-ARRANGEMENT</td><td>Partial withdrawal from funded deposit</td><td>—</td><td><span class="badge badge-yellow">Servicing</span></td></tr>
+        <tr><td>DEPOSITS-REDEEM-ARRANGEMENT</td><td>Full redemption before maturity</td><td>—</td><td><span class="badge badge-red">Closure</span></td></tr>
+        <tr><td>DEPOSITS-ROLLOVER-ARRANGEMENT</td><td>Rollover at maturity / renewal date</td><td>MT320</td><td><span class="badge badge-green">Rollover</span></td></tr>
+        <tr><td>DEPOSITS-CANCEL-ARRANGEMENT</td><td>Cancel unfunded arrangement</td><td>—</td><td><span class="badge badge-red">Cancellation</span></td></tr>
+        <tr><td>DEPOSITS-CHECK.CANCEL-ARRANGEMENT</td><td>COB: check if cancel period has expired</td><td>—</td><td><span class="badge badge-gray">COB Batch</span></td></tr>
+        <tr><td>DEPOSITS-MATURE-ARRANGEMENT</td><td>Process maturity at term end</td><td>MT320</td><td><span class="badge badge-green">Maturity</span></td></tr>
+        <tr><td>DEPOSITS-CLOSE-ARRANGEMENT</td><td>Close arrangement account post-maturity</td><td>—</td><td><span class="badge badge-red">Closure</span></td></tr>
+        <tr><td>DEPOSITS-MAKEDUE-INTEREST</td><td>COB: make interest due (issue bill)</td><td>MT350</td><td><span class="badge badge-gray">COB Batch</span></td></tr>
+        <tr><td>DEPOSITS-PERIODIC.RESET-INTEREST</td><td>Periodic floating rate reset</td><td>MT935</td><td><span class="badge badge-yellow">Servicing</span></td></tr>
+        <tr><td>DEPOSITS-ADJUST-INTEREST</td><td>Reverse &amp; replay accruals (backdated change)</td><td>—</td><td><span class="badge badge-yellow">Correction</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-hdr">Negative Interest Rate Handling — TER.NEGATIVE.RATE</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Setting</th><th>Behaviour</th><th>Luxembourg Context</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Blank / No</strong></td><td>Rate floored at zero if reference rate turns negative</td><td>Standard retail deposits — ECB ESTER floor protection for most client segments</td></tr>
+        <tr><td><strong>Yes</strong></td><td>Negative rates permitted — customer charged for holding deposits</td><td>Corporate / HNW deposits during negative rate environment; ESTER-linked products</td></tr>
+        <tr><td><strong>Block Margin</strong></td><td>Reference rate may go negative; margin blocked from pushing rate further negative</td><td>Mixed corporate deposit products; manages spread compression risk for the bank</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-hdr">Key Property Classes — AD Module</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Property Class</th><th>Function</th></tr></thead>
+      <tbody>
+        <tr><td><strong>TERM.AMOUNT</strong></td><td>Principal, term, maturity, cooling period (COOLING.PERIOD), cancel period (CANCEL.PERIOD)</td></tr>
+        <tr><td><strong>INTEREST</strong></td><td>Fixed/floating/periodic rates; tiered; TER.NEGATIVE.RATE; waiver; RFR lookback convention</td></tr>
+        <tr><td><strong>PAYOUT.RULES</strong></td><td>Sequential payout from PAY→UNC→CUR balances to customer on maturity or redemption</td></tr>
+        <tr><td><strong>CLOSURE</strong></td><td>Closure type (BALANCE/MATURITY/NONE), method (AUTOMATIC/MANUAL), cooling period handling</td></tr>
+        <tr><td><strong>CHANGE.PRODUCT</strong></td><td>Rollover period (ROLLOVER.PERIOD), renewal date management, MAINTAIN vs. PAY rollover method</td></tr>
+        <tr><td><strong>ACTIVITY.MESSAGING</strong></td><td>Pre-notification configuration (PRE.NOTICE.DAYS) — maturity and rate change customer notices</td></tr>
+        <tr><td><strong>SETTLEMENT</strong></td><td>Auto-funding and payout settlement instructions; counterparty payment processing</td></tr>
+        <tr><td><strong>TAX</strong></td><td>Withholding tax on interest; configurable by activity; links to TAX.GEN.CONDITION framework</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ CORPORATE & STRUCTURED ═══ -->
+<div id="corporate" class="tab-panel">
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">SL SWIFT Messages</div><div class="kpi-value">8</div><div class="kpi-delta neutral">MT643–MT692 range</div></div>
+    <div class="kpi-card"><div class="kpi-label">SL RFR Methods</div><div class="kpi-value">4</div><div class="kpi-delta positive">Compound · Simple · Amount · NCCR</div></div>
+    <div class="kpi-card"><div class="kpi-label">FD Commission Types</div><div class="kpi-value">3</div><div class="kpi-delta neutral">Flat · Level · Band</div></div>
+    <div class="kpi-card"><div class="kpi-label">PD Aging Statuses</div><div class="kpi-value">6</div><div class="kpi-delta neutral">CUR → PRE → GRA → PDO → NAB → WOF</div></div>
+  </div>
+  <div class="chart-grid cols-equal">
+    <div class="chart-card">
+      <div class="chart-title">Syndicated Lending (SL) — SWIFT Messages</div>
+      <div class="chart-subtitle">Red = proprietary network only (removed from FIN 2017). Green = FIN valid. Hover for detail.</div>
+      <div class="chart-wrap h280"><canvas id="sl-swift"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Past Due (PD) — Payment Status Severity</div>
+      <div class="chart-subtitle">Aging progression for LD-based commercial loans — hover for status description</div>
+      <div class="chart-wrap h280"><canvas id="pd-lifecycle"></canvas></div>
+    </div>
+  </div>
+  <div class="section-hdr">Fiduciary Deposits (FD) — Key Capabilities</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Capability</th><th>Detail</th><th>Commission / Margin</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Fixed Fiduciary Placements</strong></td><td>Defined maturity; SWIFT MT320 at open and close; FD.FIDUCIARY record per placement</td><td>Flat / Level / Band commission on deposited amount</td></tr>
+        <tr><td><strong>Notice (Call) Placements</strong></td><td>No defined maturity; interest settled at pre-agreed intervals; MT330 at open; FD.RATE.DEVIATION controls tolerance</td><td>Flat / Level / Band commission; FD.GROUP.PAYMENT for settlement dates/rates</td></tr>
+        <tr><td><strong>Order Grouping</strong></td><td>FD.MATURITY.DATES pools individual customer orders by tenor/currency to maximise volume placed</td><td>Rate negotiated with placement bank; margin returned to customer</td></tr>
+        <tr><td><strong>Placement Profile</strong></td><td>FD.PLACEMENT.PROFILE — pre-approved banks auto-allocated without back-office review</td><td>FD.BANK.DETAILS — bank-specific interest rounding and settlement practices</td></tr>
+        <tr><td><strong>PAYMENT.ORDER Integration</strong></td><td>Acct Trans PO = YES → MT202 generated via central PO module; standardised counterparty payments</td><td>Centralised payment processing; FD.GROUP.PAYMENT defines rates per bank/currency/tenor</td></tr>
+        <tr><td><strong>Customer Preferences</strong></td><td>FD.CUST.DETAILS — trusted/excluded banks, placement limits, rate category, interest method per client</td><td>Customer-specific rate categories override FD.PARAMETER defaults</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-hdr">Retail Securitisation (LNSECU)</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Aspect</th><th>Capability</th><th>Limitation / Constraint</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Securitisation Types</strong></td><td>MBS (Mortgage-Backed Securities) and ABS (Asset-Backed Securities)</td><td>Revolving loans and complex overdraft structures not supported</td></tr>
+        <tr><td><strong>Sale Mechanism</strong></td><td>Single loan (share transfer event) or bulk (batch upload); partial or full sale by %</td><td>Loans with interest accrued by Bill cannot be securitised</td></tr>
+        <tr><td><strong>Accounting Treatment</strong></td><td>Sold loans reported as off-balance-sheet in GL; bank released from default risk</td><td>Charge-off loans: only the non-charged-off portion can be securitised</td></tr>
+        <tr><td><strong>Investor Management</strong></td><td>Skim on interest; non-pro-rated charge split; buy-back (partial/full) with/without accruals</td><td>Securitised loans cannot be restructured or split/merged post-sale</td></tr>
+        <tr><td><strong>Collections (CL) Integration</strong></td><td>Generated at customer level; all overdue accounts grouped under one item; queue management; PTP auto-tracking</td><td>Feeds from AA Overdue (AL) and Past Due/PD (LD) — both pathways supported</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ CLOUD-NATIVE (TBC) ═══ -->
+<div id="tbc" class="tab-panel">
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Lending TBC In-Scope</div><div class="kpi-value">25+</div><div class="kpi-delta positive">Full lifecycle capabilities</div></div>
+    <div class="kpi-card"><div class="kpi-label">Deposits TBC Sets</div><div class="kpi-value">3</div><div class="kpi-delta neutral">Accounts · Term Deposits · MCY</div></div>
+    <div class="kpi-card"><div class="kpi-label">Integration Pattern</div><div class="kpi-value" style="font-size:18px">Event-Driven</div><div class="kpi-delta neutral">Cloud Events · BIAN standards</div></div>
+    <div class="kpi-card"><div class="kpi-label">LU Gaps to Verify</div><div class="kpi-value">4</div><div class="kpi-delta warning">⚠ CAMT.053 · Dormancy · Facility · CSSF 22/806</div></div>
+  </div>
+  <div class="chart-grid cols-equal">
+    <div class="chart-card">
+      <div class="chart-title">Lending TBC — In-Scope vs Out-of-Scope</div>
+      <div class="chart-subtitle">Out-of-scope capabilities handled by external systems consuming TBC events</div>
+      <div class="chart-wrap h280"><canvas id="tbc-lending"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Deposits TBC — Capabilities by Set</div>
+      <div class="chart-subtitle">In-scope capability count across the three Deposits TBC modules (R25)</div>
+      <div class="chart-wrap h280"><canvas id="tbc-deposits"></canvas></div>
+    </div>
+  </div>
+  <div class="section-hdr">Architecture Comparison — T24 Transact vs TBC</div>
+  <div class="chart-card">
+    <table class="compare-table">
+      <thead><tr><th class="dim">Dimension</th><th class="t24">AA Lending / Deposits — T24 Transact</th><th class="tbc">Lending TBC / Deposits TBC</th></tr></thead>
+      <tbody>
+        <tr><td class="dim">Architecture</td><td>Monolithic (single process)</td><td>Microservices — independently deployable per module</td></tr>
+        <tr><td class="dim">APIs</td><td>OFS (Open Financial Services) + REST</td><td>REST APIs only — headless, no bundled UI</td></tr>
+        <tr><td class="dim">Integration</td><td>Tightly coupled to T24 internal modules</td><td>Loosely coupled via event-driven architecture (Kafka / streaming)</td></tr>
+        <tr><td class="dim">Accounting / GL</td><td>Internal T24 general ledger</td><td>External GL — accounting events published via Business Events Store</td></tr>
+        <tr><td class="dim">Limits</td><td>LIMIT module (internal to T24)</td><td>External limit solution — events-based; TBC publishes limit events</td></tr>
+        <tr><td class="dim">Delivery / Advices</td><td>Internal T24 delivery (DE module)</td><td>External system consumes TBC events — bank provides delivery layer</td></tr>
+        <tr><td class="dim">Statements</td><td>XML, CAMT, SWIFT options in T24</td><td>Statement config only — XML/CAMT/SWIFT not currently in TBC (⚠ gap)</td></tr>
+        <tr><td class="dim">Eligibility</td><td>AA Eligibility property class (EB.RULES)</td><td>External system — Temenos Enterprise Pricing or third-party origination</td></tr>
+        <tr><td class="dim">Scaling</td><td>Scale full monolith</td><td>Scale individual microservices independently</td></tr>
+        <tr><td class="dim">Deployment</td><td>On-premise or Temenos SaaS</td><td>Cloud-native (containerised); Temenos SaaS or private cloud</td></tr>
+        <tr><td class="dim">DORA Alignment</td><td>Moderate — single unit resilience testing</td><td>Strong — per-microservice ICT resilience testing, recovery, and TLPT</td></tr>
+        <tr><td class="dim">CSSF 22/806</td><td>If on SaaS: material outsourcing notification required</td><td>If on Temenos SaaS: material outsourcing notification + exit strategy mandatory</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-hdr">Luxembourg-Specific Gaps — Deposits TBC</div>
+  <div class="gap-box">
+    <div class="gap-box-title"><i class="fa-solid fa-triangle-exclamation"></i>Material Gaps for CLIENT-LU-01 — Verify Before Architecture Decision</div>
+    <div class="gap-item">
+      <div class="gap-item-label">CAMT.053 Statements Not in Deposits TBC</div>
+      <div class="gap-item-desc">XML/CAMT/SWIFT statement formats not natively supported by Deposits TBC. For Luxembourg corporate clients relying on CAMT.053 (bank-to-customer account statement), this is material. Must be addressed via an external delivery/statement system — adds integration scope, cost, and a new vendor dependency.</div>
+    </div>
+    <div class="gap-item">
+      <div class="gap-item-label">Dormancy → Caisse de Consignation Workflow</div>
+      <div class="gap-item-desc">Luxembourg's dormancy law (loi du 27 juillet 2012 relative aux comptes inactifs) requires banks to transfer dormant account balances to the Caisse de Consignation after 10 years. Deposits TBC supports dormancy configuration, but the LU-specific workflow — CSSF notification, automated transfer event, and audit evidence — must be confirmed against TBC's dormancy event model before programme scoping.</div>
+    </div>
+    <div class="gap-item">
+      <div class="gap-item-label">Facility Property Class Not Available in Deposits TBC</div>
+      <div class="gap-item-desc">The AA Facility property class (cheques, direct debit, sweeping service flags) is not applicable in Deposits TBC. Activity Restriction is used instead. Banks relying on Facility-driven service blocking must redesign this mechanism using alternative TBC configurations — requires re-analysis and likely functional redesign in the programme.</div>
+    </div>
+    <div class="gap-item">
+      <div class="gap-item-label">CSSF 22/806 — Material Outsourcing (If TBC on Temenos SaaS)</div>
+      <div class="gap-item-desc">Deploying Lending or Deposits TBC on Temenos SaaS constitutes material outsourcing under CSSF 22/806. This requires: prior CSSF notification before go-live, a documented and tested exit strategy, sub-outsourcing risk assessment of Temenos's own cloud provider chain, and annual risk review. Must be incorporated into programme scope and the client's CSSF relationship managed proactively.</div>
+    </div>
+  </div>
+  <div class="section-hdr">TBC Architecture — Key Infrastructure Components</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Component</th><th>Function in TBC</th><th>Equivalent in T24 Transact</th></tr></thead>
+      <tbody>
+        <tr><td><strong>API Framework</strong></td><td>REST endpoints for all CRUD operations on loan/deposit contracts. Headless — no bundled UI or channel layer.</td><td>OFS + T24 Browser / Temenos Infinity</td></tr>
+        <tr><td><strong>Business Events Store</strong></td><td>Stores, orders, de-duplicates, and publishes events to downstream systems via Kafka. Immutable audit log — critical infrastructure.</td><td>No direct equivalent — T24 processes synchronously within a single transaction</td></tr>
+        <tr><td><strong>Service Orchestrator</strong></td><td>Saga pattern — ensures integrity across distributed transactions. Participating services are unaware of orchestration. Triggers next steps via command events and responses.</td><td>T24 internal transaction framework (COB COMO / activity chain)</td></tr>
+        <tr><td><strong>MDAL</strong></td><td>Master Data Access Layer — fetches customer, currency, holiday, exchange rate, IBAN from Party TBC / Reference Data TBC / Market Data TBC via REST.</td><td>Internal T24 table lookups: CUSTOMER, CURRENCY, PERIODIC.INTEREST, HOLIDAY</td></tr>
+        <tr><td><strong>Data Composer</strong></td><td>Fetches external data from cache or source systems. Shared library across all TBC modules.</td><td>T24 internal data framework and ENQUIRY application</td></tr>
+        <tr><td><strong>Adapter Framework</strong></td><td>Bridges event-based TBCs with non-event systems. Transforms events → REST calls; REST calls → events. Handles debulk/rebulk of requests.</td><td>OFS integration layer / custom T24 local routines</td></tr>
+        <tr><td><strong>Distributed Cache</strong></td><td>Low-latency persistent cache (Redis by default; pluggable). Shared across TBC services for reference data.</td><td>T24 in-memory data and ENQUIRY selection cache</td></tr>
+        <tr><td><strong>Configuration Service</strong></td><td>Central API-based configuration management. Stateless. Accessed via MDAL (Group Id + Configuration Name).</td><td>T24 parameter tables (FT.TXN.TYPE.CONDITION, AA.PRODUCT.DESIGNER, etc.)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ REGULATORY FIT ═══ -->
+<div id="regulatory" class="tab-panel">
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Regulatory Frameworks</div><div class="kpi-value">6</div><div class="kpi-delta positive">Luxembourg + EU</div></div>
+    <div class="kpi-card"><div class="kpi-label">DORA Effective</div><div class="kpi-value" style="font-size:18px">Jan 2025</div><div class="kpi-delta warning">5 pillars — all LU banks in scope</div></div>
+    <div class="kpi-card"><div class="kpi-label">SWIFT Deadline</div><div class="kpi-value" style="font-size:18px">Nov 2026</div><div class="kpi-delta danger">⚠ BDP/IBP → Identifiers All</div></div>
+    <div class="kpi-card"><div class="kpi-label">Open Gaps</div><div class="kpi-value">6</div><div class="kpi-delta warning">Flagged for client verification</div></div>
+  </div>
+  <div class="chart-grid cols-2">
+    <div class="chart-card">
+      <div class="chart-title">Regulatory Framework Coverage</div>
+      <div class="chart-subtitle">Estimated T24 Transact R25 native coverage — standard AA/AL/AD implementation, Luxembourg context</div>
+      <div class="chart-wrap h340"><canvas id="reg-coverage"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Gap Criticality Distribution</div>
+      <div class="chart-subtitle">Identified regulatory and technical gaps by impact level — CLIENT-LU-01 modernisation programme</div>
+      <div class="chart-wrap h340"><canvas id="reg-gaps"></canvas></div>
+    </div>
+  </div>
+  <div class="section-hdr">Regulatory Framework Reference — Luxembourg Banking</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Regulation</th><th>Authority</th><th>Key Obligation</th><th>T24 R25 Relevance</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CSSF 18/698 (AML/CFT)</strong></td><td>CSSF</td><td>CDD, EDD, PEP screening, transaction monitoring, SAR to CRF</td><td>Customer data structure (ST); transaction coding; reporting feeds to external AML engine</td><td><span class="badge badge-yellow">Partial</span></td></tr>
+        <tr><td><strong>CSSF 22/806 (Outsourcing)</strong></td><td>CSSF</td><td>Material outsourcing notification; documented exit strategy; sub-outsourcing assessment</td><td>Mandatory if Temenos SaaS — prior CSSF notification required before go-live</td><td><span class="badge badge-yellow">Conditional</span></td></tr>
+        <tr><td><strong>CSSF 12/552 (Governance)</strong></td><td>CSSF</td><td>Internal governance, risk management, central administration</td><td>Audit trails; access control; system change documentation — all T24 native</td><td><span class="badge badge-green">Supported</span></td></tr>
+        <tr><td><strong>DORA (EU 2022/2554)</strong></td><td>CSSF / ESAs</td><td>ICT risk mgmt; incident reporting (4h initial, 24h report, 1M final); TLPT every 3Y</td><td>TBC microservices align with DORA's independent per-capability resilience testing requirement</td><td><span class="badge badge-yellow">Partial</span></td></tr>
+        <tr><td><strong>GDPR / CNPD</strong></td><td>CNPD</td><td>Data minimisation; retention (10Y AML / 5Y transaction); DPIA for migration projects</td><td>Data migration requires DPIA; CNPD audit trails; data subject rights in T24 customer model</td><td><span class="badge badge-yellow">Partial</span></td></tr>
+        <tr><td><strong>EU Consumer Credit Dir.</strong></td><td>CSSF / EU</td><td>SECCI disclosure, APRC calculation, right of withdrawal (14 days), early repayment right</td><td>AL: cooling period (TERM.AMOUNT); APRC via AA.APR.TYPE; payoff simulation; EU CCD gap assessment</td><td><span class="badge badge-green">Strong</span></td></tr>
+        <tr><td><strong>PSD2 / SCA</strong></td><td>CSSF</td><td>SCA mandatory for e-payments; Open Banking APIs for licensed TPPs; Berlin Group NextGenPSD2</td><td>Account Consent property class in AA; Berlin Group API layer is external to T24 core</td><td><span class="badge badge-yellow">Partial</span></td></tr>
+        <tr><td><strong>AML 6AMLD / RBE</strong></td><td>CSSF / CRF</td><td>UBO verification (Registre des Bénéficiaires Effectifs); SAR filing; 6AMLD predicate offences</td><td>Customer/sector data in ST; AML monitoring system is external — T24 provides data feeds only</td><td><span class="badge badge-yellow">Partial</span></td></tr>
+        <tr><td><strong>SFRD25 / SWIFT Nov 2026</strong></td><td>SWIFT</td><td>Migrate from BDP/IBP directories to Identifiers All by November 2026</td><td>SFRD25 module auto-included with RD from R25; upload process migration required — action needed now</td><td><span class="badge badge-red">Action Required</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section-hdr">Priority Gaps — CLIENT-LU-01 Modernisation Programme</div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr><th>Gap</th><th>Regulation / Standard</th><th>Impact</th><th>Recommended Action</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CAMT.053 statements — not in Deposits TBC</strong></td><td>CSSF / Corporate client expectation</td><td><span class="badge badge-red">High</span></td><td>Confirm external delivery/statement system in TBC integration design; add to programme scope and budget</td></tr>
+        <tr><td><strong>SWIFT Directory Migration (BDP/IBP → SFRD25)</strong></td><td>SWIFT — November 2026 hard deadline</td><td><span class="badge badge-red">High</span></td><td>Implement SFRD25 upload pipeline now; cease BDP/IBP processing before November 2026; add to programme critical path</td></tr>
+        <tr><td><strong>CSSF 22/806 — outsourcing notification (if SaaS)</strong></td><td>CSSF 22/806</td><td><span class="badge badge-red">High</span></td><td>Mandatory prior CSSF notification before go-live on Temenos SaaS; prepare exit strategy documentation in programme</td></tr>
+        <tr><td><strong>Dormancy → Caisse de Consignation workflow</strong></td><td>Loi du 27 juillet 2012</td><td><span class="badge badge-yellow">Medium</span></td><td>Verify TBC dormancy event model supports LU-specific notification + automated transfer to Caisse de Consignation</td></tr>
+        <tr><td><strong>PSD2 Open Banking — Berlin Group API layer</strong></td><td>PSD2 / CSSF</td><td><span class="badge badge-yellow">Medium</span></td><td>Berlin Group NextGenPSD2 API layer required externally; T24 provides Account Consent property only — external API gateway needed</td></tr>
+        <tr><td><strong>AML transaction monitoring integration</strong></td><td>CSSF 18/698</td><td><span class="badge badge-yellow">Medium</span></td><td>T24 provides data feeds and audit trail; AML monitoring system (Actimize, NICE, Featurespace) is external — integration must be fully scoped</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#64748b';
+const PALETTE = ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#db2777','#16a34a'];
+const TT = { backgroundColor:'#0f172a', titleColor:'#f8fafc', bodyColor:'#cbd5e1', padding:12, cornerRadius:8 };
+
+const initd = new Set();
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (!initd.has(id)) { setTimeout(() => initCharts(id), 60); initd.add(id); }
+}
+function initCharts(id) {
+  if (id==='overview')    initOverview();
+  else if (id==='lending')    initLending();
+  else if (id==='deposits')   initDeposits();
+  else if (id==='corporate')  initCorporate();
+  else if (id==='tbc')        initTBC();
+  else if (id==='regulatory') initRegulatory();
+}
+
+function initOverview() {
+  new Chart(document.getElementById('ovw-coverage'), {
+    type:'bar',
+    data:{
+      labels:['Retail Lending (AL)','Commercial Lending (LD)','Syndicated Lending (SL)',
+              'Collections (CL)','Past Due (PD)','Securitisation (LNSECU)','Lending TBC',
+              'AA Deposits (AD)','Fiduciary Deposits (FD)',
+              'Retail Accounts TBC','Term Deposits TBC','MCY Accounts TBC'],
+      datasets:[
+        { label:'Core Activities', data:[15,8,10,5,7,5,25,13,8,17,15,10], backgroundColor:'#2563eb', borderRadius:3 },
+        { label:'Property Classes / Config', data:[14,7,9,4,6,4,8,14,12,10,10,8], backgroundColor:'#93c5fd', borderRadius:3 }
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{ padding:16, usePointStyle:true } }, tooltip:{...TT} },
+      scales:{ x:{ grid:{color:'#f1f5f9'} }, y:{ grid:{display:false} } }
+    }
+  });
+  new Chart(document.getElementById('ovw-donut'), {
+    type:'doughnut',
+    data:{
+      labels:['Lending Core (AL, LD)','Corporate/Structured (SL, FD, LNSECU)',
+              'Collections / Risk (CL, PD)','Deposits Core (AD, FD)','Cloud-Native TBC (4 sets)'],
+      datasets:[{ data:[2,3,2,2,4], backgroundColor:PALETTE, borderWidth:2, borderColor:'#fff', hoverOffset:8 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{ legend:{ position:'bottom', labels:{ padding:12, usePointStyle:true, font:{size:11} } }, tooltip:{...TT} } }
+  });
+}
+
+function initLending() {
+  new Chart(document.getElementById('al-lifecycle'), {
+    type:'bar',
+    data:{
+      labels:['Origination','Disbursement','Servicing','Interest / Rate Mgmt','Overdue / Recovery','Closure / Write-off'],
+      datasets:[{ label:'Key Activities', data:[2,2,6,4,4,4],
+        backgroundColor:['#2563eb','#059669','#0891b2','#7c3aed','#d97706','#dc2626'], borderRadius:6 }]
+    },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{...TT} },
+      scales:{ x:{ grid:{color:'#f1f5f9'}, ticks:{stepSize:1} }, y:{ grid:{display:false} } } }
+  });
+  new Chart(document.getElementById('al-repayment'), {
+    type:'doughnut',
+    data:{
+      labels:['ANNUITY — Equal P+I instalment (EMI)',
+              'LINEAR — Fixed principal, variable interest',
+              'CONSTANT — Fixed total amount per period',
+              'PROGRESSIVE — Escalating instalments',
+              'ACTUAL — Pay accrued interest each period'],
+      datasets:[{ data:[38,22,15,10,15], backgroundColor:PALETTE, borderWidth:2, borderColor:'#fff', hoverOffset:8 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'55%',
+      plugins:{ legend:{ position:'bottom', labels:{ padding:8, usePointStyle:true, font:{size:11} } }, tooltip:{...TT} } }
+  });
+  new Chart(document.getElementById('al-rfr'), {
+    type:'bar',
+    data:{
+      labels:['EUR — ESTER','USD — SOFR','GBP — SONIA','CHF — SARON','JPY — TONAR'],
+      datasets:[{ label:'RFR Support', data:[100,100,100,100,100],
+        backgroundColor:['#059669','#2563eb','#7c3aed','#d97706','#0891b2'],
+        borderRadius:8, barThickness:40 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ ...TT, callbacks:{ label:()=>'Full RFR support — lookback convention (Narrow / Observation Shift)' } } },
+      scales:{ x:{ grid:{display:false} }, y:{ display:false, max:130 } } }
+  });
+}
+
+function initDeposits() {
+  new Chart(document.getElementById('ad-products'), {
+    type:'bar',
+    data:{
+      labels:['Term Deposits 3–12M','Term Deposits 18–36M','Long / Short Term',
+              'Fully Negotiable','Bonds (6M / 1Y / 3Y)','Savings Plan','Retirement Plan','Call Deposits'],
+      datasets:[{ label:'Product Variants', data:[4,3,2,1,3,1,1,1], backgroundColor:PALETTE, borderRadius:6 }]
+    },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{...TT} },
+      scales:{ x:{ grid:{color:'#f1f5f9'}, ticks:{stepSize:1} }, y:{ grid:{display:false} } } }
+  });
+  new Chart(document.getElementById('ad-swift'), {
+    type:'doughnut',
+    data:{
+      labels:['MT320 — Fixed deposit (new, rollover, mature)',
+              'MT330 — Call / no-term deposit (new)',
+              'MT350 — Interest payment due',
+              'MT935 — Rate change / periodic reset'],
+      datasets:[{ data:[40,20,25,15],
+        backgroundColor:['#2563eb','#059669','#d97706','#7c3aed'],
+        borderWidth:2, borderColor:'#fff', hoverOffset:8 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'55%',
+      plugins:{ legend:{ position:'bottom', labels:{ padding:8, usePointStyle:true, font:{size:11} } }, tooltip:{...TT} } }
+  });
+}
+
+function initCorporate() {
+  const slNote = ['Proprietary network only (removed from SWIFT FIN 2017)',
+    'Proprietary network only (removed from SWIFT FIN 2017)','FIN valid','FIN valid',
+    'Proprietary network only (removed from SWIFT FIN 2017)','FIN valid','FIN valid','FIN valid'];
+  new Chart(document.getElementById('sl-swift'), {
+    type:'bar',
+    data:{
+      labels:['MT643 Drawdown/Amend','MT644 Rate/Amount Fix','MT645 Commitment Fee','MT646 Payment Conf',
+              'MT649 Facility/Amend','MT690 Fee Notice','MT691 Charge Advice','MT692 Reversal'],
+      datasets:[{ label:'SL SWIFT Messages', data:[1,1,1,1,1,1,1,1],
+        backgroundColor:['#dc2626','#dc2626','#059669','#059669','#dc2626','#059669','#059669','#059669'],
+        borderRadius:6 }]
+    },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ ...TT, callbacks:{ label:(ctx)=>slNote[ctx.dataIndex], title:(i)=>i[0].label } } },
+      scales:{ x:{ display:false, max:2 }, y:{ grid:{display:false} } } }
+  });
+  const pdDesc = ['Current — fully up to date','Pre-Grace — no penalties calculated or posted',
+    'Grace — penalty calculated informally; waiveable on repayment',
+    'Past Due — penalty calculated, accrued, and posted to books',
+    'Non-Accrual — interest accruals cease; penalty continues informationally',
+    'Write-Off — manually removed from books',
+    'Financial Write-Off — both PD and underlying LD contract written off'];
+  new Chart(document.getElementById('pd-lifecycle'), {
+    type:'bar',
+    data:{
+      labels:['CUR','PRE','GRA','PDO','NAB','WOF','FWOF'],
+      datasets:[{ label:'Severity', data:[10,30,50,70,85,95,100],
+        backgroundColor:['#059669','#84cc16','#d97706','#f97316','#dc2626','#991b1b','#1e293b'],
+        borderRadius:6 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ ...TT, callbacks:{ label:(ctx)=>pdDesc[ctx.dataIndex], title:(i)=>i[0].label } } },
+      scales:{ x:{ grid:{display:false} }, y:{ display:false, max:125 } } }
+  });
+}
+
+function initTBC() {
+  new Chart(document.getElementById('tbc-lending'), {
+    type:'doughnut',
+    data:{
+      labels:['In-Scope Capabilities (25+)','Out-of-Scope — External Systems (5)'],
+      datasets:[{ data:[25,5], backgroundColor:['#059669','#dc2626'], borderWidth:2, borderColor:'#fff', hoverOffset:8 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{ legend:{ position:'bottom', labels:{ padding:16, usePointStyle:true } }, tooltip:{...TT} } }
+  });
+  new Chart(document.getElementById('tbc-deposits'), {
+    type:'bar',
+    data:{
+      labels:['Retail Accounts TBC','Term Deposits TBC','MCY Accounts TBC'],
+      datasets:[{ label:'In-Scope Capabilities', data:[17,15,10],
+        backgroundColor:['#2563eb','#059669','#7c3aed'], borderRadius:8, barThickness:70 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{...TT} },
+      scales:{ x:{ grid:{display:false} }, y:{ grid:{color:'#f1f5f9'}, ticks:{stepSize:5} } } }
+  });
+}
+
+function initRegulatory() {
+  new Chart(document.getElementById('reg-coverage'), {
+    type:'bar',
+    data:{
+      labels:['EU Consumer Credit Dir.','CSSF 22/806 (Outsourcing)',
+              'CSSF 18/698 (AML/CFT)','GDPR / CNPD',
+              'DORA (ICT Resilience)','PSD2 / Open Banking'],
+      datasets:[{ label:'T24 R25 Native Coverage (%)', data:[95,90,85,80,75,70],
+        backgroundColor:['#059669','#059669','#d97706','#d97706','#d97706','#d97706'], borderRadius:6 }]
+    },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ ...TT, callbacks:{ label:(ctx)=>ctx.raw+'% estimated native coverage — verify client configuration' } } },
+      scales:{ x:{ min:0, max:100, grid:{color:'#f1f5f9'}, ticks:{ callback:v=>v+'%' } }, y:{ grid:{display:false} } } }
+  });
+  new Chart(document.getElementById('reg-gaps'), {
+    type:'doughnut',
+    data:{
+      labels:['High Impact (3 gaps)','Medium Impact (3 gaps)','Confirmed Supported (3 items)'],
+      datasets:[{ data:[3,3,3], backgroundColor:['#dc2626','#d97706','#059669'], borderWidth:2, borderColor:'#fff', hoverOffset:8 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'55%',
+      plugins:{ legend:{ position:'bottom', labels:{ padding:12, usePointStyle:true } }, tooltip:{...TT} } }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initd.add('overview');
+  initCharts('overview');
+});
+</script>
+</body>
+</html>
